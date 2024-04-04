@@ -57,6 +57,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
         ApiSecret: Text;
+        Handled: Boolean;
     begin
         if not EnvironmentInformation.IsSaaS() then
             Error(NotSupportedOnPremErr);
@@ -176,6 +177,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
         AccessToken: Text;
+        Handled: Boolean;
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
@@ -233,18 +235,20 @@ codeunit 30199 "Shpfy Authentication Mgt."
         ExtensionManagement.ConfigureExtensionHttpClientRequestsAllowance(CallerModuleInfo.PackageId(), true);
     end;
 
+    // These events nee to be set in a seperate codeunit so they can be seen outside of this app.
+    // This is because this codeunit has the property Access = Internal.
     [IntegrationEvent(false, false)]
-    procedure OnBeforeGetApiKey(var ApiKey: Text; IsHandled: Boolean]
+    procedure OnBeforeGetApiKey(var ApiKey: Text; IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforeGetApiSecret(var ApiKey: Text; IsHandled: Boolean]
+    procedure OnBeforeGetApiSecret(var ApiKey: Text; IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforeGetAAccessToken(var ApiKey: Text; IsHandled: Boolean]
+    procedure OnBeforeGetAAccessToken(var ApiKey: Text; IsHandled: Boolean)
     begin
     end;
 }
