@@ -65,7 +65,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         if not EnvironmentInformation.IsProduction() then begin
             OnBeforeGetApiSecret(ApiSecret, Handled);
             if Handled then
-                exit(ApiKey);
+                exit(ApiSecret);
         end;
 
         if not AzureKeyVault.GetAzureKeyVaultSecret(ShopifyAPISecretAKVSecretNameLbl, ApiSecret) then
@@ -243,12 +243,12 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforeGetApiSecret(var ApiKey: Text; IsHandled: Boolean)
+    procedure OnBeforeGetApiSecret(var ApiSecret: Text; IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforeGetAAccessToken(var ApiKey: Text; IsHandled: Boolean)
+    procedure OnBeforeGetAAccessToken(var AccessToken: Text; IsHandled: Boolean)
     begin
     end;
 }
