@@ -176,6 +176,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
     internal procedure GetAccessToken(Store: Text): Text
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
+        EnvironmentInformation: Codeunit "Environment Information";
         AccessToken: Text;
         Handled: Boolean;
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
@@ -248,7 +249,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforeGetAAccessToken(var AccessToken: Text; IsHandled: Boolean)
+    procedure OnBeforeGetAccessToken(var AccessToken: Text; IsHandled: Boolean)
     begin
     end;
 }
