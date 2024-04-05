@@ -33,9 +33,16 @@ codeunit 30199 "Shpfy Authentication Mgt."
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
         ApiKey: Text;
+        Handled: Boolean;
     begin
         if not EnvironmentInformation.IsSaaS() then
             Error(NotSupportedOnPremErr);
+
+        if not EnvironmentInformation.IsProduction() then begin
+            OnBeforeGetApiKey(ApiKey, Handled);
+            if Handled then
+                exit(ApiKey);
+        end;
 
         if not AzureKeyVault.GetAzureKeyVaultSecret(ShopifyAPIKeyAKVSecretNameLbl, ApiKey) then
             Session.LogMessage('0000HCA', MissingAPIKeyTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok)
@@ -50,9 +57,16 @@ codeunit 30199 "Shpfy Authentication Mgt."
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
         ApiSecret: Text;
+        Handled: Boolean;
     begin
         if not EnvironmentInformation.IsSaaS() then
             Error(NotSupportedOnPremErr);
+
+        if not EnvironmentInformation.IsProduction() then begin
+            OnBeforeGetApiSecret(ApiSecret, Handled);
+            if Handled then
+                exit(ApiSecret);
+        end;
 
         if not AzureKeyVault.GetAzureKeyVaultSecret(ShopifyAPISecretAKVSecretNameLbl, ApiSecret) then
             Session.LogMessage('0000HCB', MissingAPISecretTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok)
@@ -162,10 +176,18 @@ codeunit 30199 "Shpfy Authentication Mgt."
     internal procedure GetAccessToken(Store: Text): Text
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
+        EnvironmentInformation: Codeunit "Environment Information";
         AccessToken: Text;
+        Handled: Boolean;
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
+        if not EnvironmentInformation.IsProduction() then begin
+            OnBeforeGetAccessToken(AccessToken, Handled);
+            if Handled then
+                exit(AccessToken);
+        end;
+
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = ScopeTxt then begin
                 AccessToken := RegisteredStoreNew.GetAccessToken();
@@ -212,5 +234,22 @@ codeunit 30199 "Shpfy Authentication Mgt."
     begin
         NavApp.GetCurrentModuleInfo(CallerModuleInfo);
         ExtensionManagement.ConfigureExtensionHttpClientRequestsAllowance(CallerModuleInfo.PackageId(), true);
+    end;
+
+    // These events nee to be set in a seperate codeunit so they can be seen outside of this app.
+    // This is because this codeunit has the property Access = Internal.
+    [IntegrationEvent(false, false)]
+    procedure OnBeforeGetApiKey(var ApiKey: Text; IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure OnBeforeGetApiSecret(var ApiSecret: Text; IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure OnBeforeGetAccessToken(var AccessToken: Text; IsHandled: Boolean)
+    begin
     end;
 }
